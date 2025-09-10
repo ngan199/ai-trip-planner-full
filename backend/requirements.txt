@@ -1,0 +1,23 @@
+# Web framework & server
+fastapi
+uvicorn[standard]
+
+
+# HTTP client for external APIs
+httpx
+
+
+# Data validation & settings
+pydantic
+pydantic-settings
+python-dotenv
+
+
+# JSON & logging (performance/clarity)
+orjson
+loguru
+
+
+# Quality (also used in CI)
+ruff
+black
