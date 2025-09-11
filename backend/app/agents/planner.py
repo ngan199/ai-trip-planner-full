@@ -8,7 +8,7 @@ async def plan_skeleton(req: Dict[str, Any]) -> Dict[str, Any]:
         # For simplicity use Dx when start_date is not provided
         days.append(
             {
-                "date": req.get("start_date", f"D{i+1}"),
+                "date": req.get("start_date", f"D{i + 1}"),
                 "items": [],
             }
         )

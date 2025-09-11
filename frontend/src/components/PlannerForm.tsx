@@ -39,8 +39,14 @@ const submit = async () => {
 
         const it = await planTrip(req);
         onPlan(it);
-    } catch (e: any) {
-        setErr(e.message || "Request failed");
+    } catch (e: unknown) {
+        let message = "Request failed";
+
+        if (e instanceof Error) {
+            message = e.message; // ✅ safe: Error always has .message
+        }
+
+  setErr(message);
     } finally {
         setLoading(false);
     }

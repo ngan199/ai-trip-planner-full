@@ -2,7 +2,7 @@
 import { useEffect, useRef } from "react";
 import type { Itinerary } from "../types/app";
 
-declare global { interface Window { google: any } }
+declare global { interface Window { google: typeof google } }
 
 function loadGoogleScript(apiKey: string) {
     // Inject Google Maps JS SDK once
