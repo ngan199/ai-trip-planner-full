@@ -5,7 +5,7 @@
 from __future__ import annotations                         # Enable future annotations (nice for type hints)
 from typing import Any, Dict, Optional, Tuple              # Import common typing helpers
 import json                                                # Parse JSON strings
-from tenacity import retry, stop_after_attempts, wait_exponential  # Reliable retry for flaky network calls
+from tenacity import retry, stop_after_attempt, wait_exponential  # Reliable retry for flaky network calls
 
 # Provider SDKs (all optional — only used if the API key exists)
 import os                                                 # Access environment for safety checks
@@ -92,7 +92,7 @@ class GeminiProvider:
         if genai:                                          # If SDK is available
             genai.configure(api_key=api_key)               # Configure SDK globally with API key
 
-    @retry(stop=stop_after_attempts(2), wait=wait_exponential(multiplier=0.5, max=4))
+    @retry(stop=stop_after_attempt(2), wait=wait_exponential(multiplier=0.5, max=4))
     def generate_pois(self, city: str, preferences: list[str], days: int, budget: float) -> Dict[str, Any]:
         """Call Gemini with strict JSON response."""
         if not genai:                                      # If SDK is missing, raise an informative error
@@ -128,7 +128,7 @@ class OpenAIProvider:
         self.client = openai.OpenAI(api_key=api_key)       # Instantiate OpenAI client with API key
         self.model = model                                 # Save model name
 
-    @retry(stop=stop_after_attempts(2), wait=wait_exponential(multiplier=0.5, max=4))
+    @retry(stop=stop_after_attempt(2), wait=wait_exponential(multiplier=0.5, max=4))
     def generate_pois(self, city: str, preferences: list[str], days: int, budget: float) -> Dict[str, Any]:
         """Call OpenAI Chat Completions (JSON mode) to get POI list."""
         system, user = build_poi_prompt(city, preferences, days, budget)  # Build messages
@@ -155,7 +155,7 @@ class AnthropicProvider:
         self.client = anthropic.Anthropic(api_key=api_key) # Instantiate Anthropic client with API key
         self.model = model                                 # Save model name
 
-    @retry(stop=stop_after_attempts(2), wait=wait_exponential(multiplier=0.5, max=4))
+    @retry(stop=stop_after_attempt(2), wait=wait_exponential(multiplier=0.5, max=4))
     def generate_pois(self, city: str, preferences: list[str], days: int, budget: float) -> Dict[str, Any]:
         """Call Claude Messages API and request JSON content."""
         system, user = build_poi_prompt(city, preferences, days, budget)  # Build messages
