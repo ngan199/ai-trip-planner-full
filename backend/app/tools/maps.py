@@ -95,7 +95,5 @@ async def google_route(
 
         return {
             "duration_min": int(leg.get("duration", {}).get("value", 0) / 60),
-            "distance_km": round(
-                leg.get("distance", {}).get("value", 0) / 1000, 2
-            ),
+            "distance_km": round(leg.get("distance", {}).get("value", 0) / 1000, 2),
         }
