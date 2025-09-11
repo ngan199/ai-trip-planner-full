@@ -1,23 +1,27 @@
 # Web framework & server
-fastapi
-uvicorn[standard]
-
+fastapi               # Web framework for defining HTTP APIs
+uvicorn[standard]     # ASGI server to run FastAPI
 
 # HTTP client for external APIs
-httpx
-
+httpx                 # Async HTTP client used to call Google APIs (and can call LLMs if needed)
 
 # Data validation & settings
-pydantic
-pydantic-settings
-python-dotenv
-
+pydantic              # Data models (request/response)
+pydantic-settings     # Typed settings from environment variables
+python-dotenv         # Load .env files locally
 
 # JSON & logging (performance/clarity)
-orjson
-loguru
+orjson                # Fast JSON (can be used as serializer in FastAPI if needed)
+loguru                # Friendly logger (we keep for future extensions)
 
+# LLM providers (Sprint 2)
+openai                # Official OpenAI SDK
+anthropic             # Official Anthropic SDK
+google-generativeai   # Official Google Gemini SDK
+
+# Reliability
+tenacity              # Retry utilities for fragile network calls
 
 # Quality (also used in CI)
-ruff
-black
+ruff                  # Lint Python
+black                 # Format Python

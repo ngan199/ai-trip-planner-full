@@ -1,0 +1,10 @@
+{
+    "folders": [
+        { "path": "frontend" },
+        { "path": "backend" }
+    ],
+    "settings": {
+        "python.defaultInterpreterPath": "${workspaceFolder:backend}/.venv/bin/python",
+        "editor.formatOnSave": true
+    }
+}
