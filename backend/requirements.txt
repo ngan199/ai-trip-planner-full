@@ -21,6 +21,7 @@ google-generativeai   # Official Google Gemini SDK
 
 # Reliability
 tenacity              # Retry utilities for fragile network calls
+python-dateutil       # Date parsing/offsets (multi-day logic)
 
 # Quality (also used in CI)
 ruff                  # Lint Python
