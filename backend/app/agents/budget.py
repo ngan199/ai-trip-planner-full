@@ -1,23 +1,25 @@
 # Purpose: Compute realistic totals using provider-agnostic hotel quotes + per-day heuristics
-from typing import Dict, Any                               # Typing
-from ..tools.hotels import hotel_budget                    # Hotel adapter (provider/fallback)
-from ..settings import Settings                            # Defaults for daily costs
-from ..utils.metrics import metrics                        # Metrics timer
+from typing import Dict, Any  # Typing
+from ..tools.hotels import hotel_budget  # Hotel adapter (provider/fallback)
+from ..settings import Settings  # Defaults for daily costs
+from ..utils.metrics import metrics  # Metrics timer
 
 
-async def estimate_budget(itinerary: Dict[str, Any], currency: str = "USD") -> Dict[str, Any]:
+async def estimate_budget(
+    itinerary: Dict[str, Any], currency: str = "USD"
+) -> Dict[str, Any]:
     """
     Compute totals:
       - lodging: provider-quoted (or heuristic) nightly * nights
       - food/transport/tickets/misc: per-day heuristics
     Also attach an 'explain' section with sources and assumptions.
     """
-    s = Settings()                                         # Load settings
-    trip = itinerary["trip"]                                # Trip block (city, days, budget, currency)
+    s = Settings()  # Load settings
+    trip = itinerary["trip"]  # Trip block (city, days, budget, currency)
     city = trip["city"]
     days = int(trip["days"])
-    nights = max(1, days - 1)                               # Nights = days - 1 (min 1 for short trips)
-    rooms = 1                                               # Assume 1 room (can parameterize later)
+    nights = max(1, days - 1)  # Nights = days - 1 (min 1 for short trips)
+    rooms = 1  # Assume 1 room (can parameterize later)
 
     # Hotels quote (async provider call) protected by timer
     with metrics.timer("budget_hotels"):
@@ -44,7 +46,7 @@ async def estimate_budget(itinerary: Dict[str, Any], currency: str = "USD") -> D
     # Explainability: why these numbers exist
     explain = {
         "lodging": {
-            "source": hotel["source"],               # 'provider' or 'heuristic'
+            "source": hotel["source"],  # 'provider' or 'heuristic'
             "nightly": hotel["nightly"],
             "nights": hotel["nights"],
             "rooms": hotel["rooms"],
@@ -56,7 +58,7 @@ async def estimate_budget(itinerary: Dict[str, Any], currency: str = "USD") -> D
             "tickets_per_day": s.default_tickets_per_day,
             "misc_per_day": s.default_misc_per_day,
             "currency": currency,
-        }
+        },
     }
     # Attach to notes as a compact human-readable message
     itinerary.setdefault("notes", []).append(

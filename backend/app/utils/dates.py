@@ -1,6 +1,6 @@
 # Purpose: Utilities to handle multi-day date generation and formatting
-from datetime import date, timedelta                 # For date handling
-from dateutil.parser import parse                    # For parsing string dates (flexible)
+from datetime import date, timedelta  # For date handling
+from dateutil.parser import parse  # For parsing string dates (flexible)
 
 
 def normalize_start_date(start_date: str | None) -> str:

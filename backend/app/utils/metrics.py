@@ -1,7 +1,7 @@
 # Purpose: Minimal metrics helpers (timing + simple counters) to aid observability
-import time                                   # Time measurements
-from contextlib import contextmanager          # Context manager helper
-from typing import Dict                  # Typing hints
+import time  # Time measurements
+from contextlib import contextmanager  # Context manager helper
+from typing import Dict  # Typing hints
 
 
 class Metrics:
@@ -9,6 +9,7 @@ class Metrics:
     Very lightweight metrics store (in-memory).
     In production, replace with Prometheus/OpenTelemetry exporters.
     """
+
     def __init__(self) -> None:
         # Store cumulative durations per label
         self.timings: Dict[str, float] = {}

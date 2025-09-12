@@ -3,19 +3,21 @@
 # - Else: fallback heuristics based on city buckets.
 # Note: Replace with a real provider (e.g., RapidAPI Skyscanner/Hotels) when credentials are available.
 
-from typing import Optional, Dict, Any              # Typing helpers
-import httpx                                        # HTTP client
-from ..settings import Settings                     # Settings to read provider keys
-from ..utils.cache import cache                     # Simple TTL cache
-from ..utils.metrics import metrics                 # Metrics for timing
+from typing import Optional, Dict, Any  # Typing helpers
+import httpx  # HTTP client
+from ..settings import Settings  # Settings to read provider keys
+from ..utils.cache import cache  # Simple TTL cache
+from ..utils.metrics import metrics  # Metrics for timing
 
 
-async def _provider_price_nightly(city: str, start_date: str, nights: int, rooms: int = 1) -> Optional[float]:
+async def _provider_price_nightly(
+    city: str, start_date: str, nights: int, rooms: int = 1
+) -> Optional[float]:
     """
     Call external hotel provider to estimate nightly price for the given city/dates.
     Return price per night (float) or None if not available.
     """
-    s = Settings()                                   # Load settings (keys and endpoint)
+    s = Settings()  # Load settings (keys and endpoint)
     if not (s.hotel_api_key and s.hotel_api_host and s.hotel_api_endpoint):
         # Provider not configured -> no direct price available
         return None
@@ -27,17 +29,17 @@ async def _provider_price_nightly(city: str, start_date: str, nights: int, rooms
         return cached
 
     headers = {
-        "X-RapidAPI-Key": s.hotel_api_key,          # Example: RapidAPI key header
-        "X-RapidAPI-Host": s.hotel_api_host,        # Example: API host
+        "X-RapidAPI-Key": s.hotel_api_key,  # Example: RapidAPI key header
+        "X-RapidAPI-Host": s.hotel_api_host,  # Example: API host
     }
     # Below payload/params depend on the chosen provider; adapt accordingly.
     params = {
-        "city": city,                               # City name or ID
-        "checkin": start_date,                      # Check-in date (YYYY-MM-DD)
-        "nights": str(nights),                      # Number of nights
-        "rooms": str(rooms),                        # Room count
-        "adults": "2",                              # Assumption: 2 adults per room
-        "currency": "USD",                          # Normalize currency for budgeting
+        "city": city,  # City name or ID
+        "checkin": start_date,  # Check-in date (YYYY-MM-DD)
+        "nights": str(nights),  # Number of nights
+        "rooms": str(rooms),  # Room count
+        "adults": "2",  # Assumption: 2 adults per room
+        "currency": "USD",  # Normalize currency for budgeting
     }
 
     # Make the HTTP call protected by a timer for metrics
@@ -86,7 +88,9 @@ def _heuristic_price_nightly(city: str) -> float:
     return 85.0
 
 
-async def hotel_budget(city: str, start_date: str, nights: int, rooms: int = 1) -> Dict[str, Any]:
+async def hotel_budget(
+    city: str, start_date: str, nights: int, rooms: int = 1
+) -> Dict[str, Any]:
     """
     Return a hotel budget breakdown:
     { "nightly": float, "nights": int, "rooms": int, "total": float, "currency": "USD", "source": "provider|heuristic" }
@@ -101,7 +105,7 @@ async def hotel_budget(city: str, start_date: str, nights: int, rooms: int = 1) 
             "rooms": rooms,
             "total": round(total, 2),
             "currency": "USD",
-            "source": "provider"
+            "source": "provider",
         }
 
     # Fallback to heuristic price
@@ -113,5 +117,5 @@ async def hotel_budget(city: str, start_date: str, nights: int, rooms: int = 1) 
         "rooms": rooms,
         "total": round(total, 2),
         "currency": "USD",
-        "source": "heuristic"
+        "source": "heuristic",
     }
