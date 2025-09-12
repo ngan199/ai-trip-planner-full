@@ -12,5 +12,9 @@ extends: [
 "prettier"
 ],
 settings: { react: { version: "detect" } },
-rules: { "react/react-in-jsx-scope": "off" }
+rules: {
+    "prettier/prettier": "warn",
+    "react/react-in-jsx-scope": "off",
+    "@typescript-eslint/no-explicit-any": "error" // Disallow 'any' explicitly
+  }
 };

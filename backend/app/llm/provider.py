@@ -271,3 +271,88 @@ class LLMRouter:
                 last_error = e  # Record error and continue to next provider
         # If we reach here, no provider succeeded; raise a helpful error
         raise RuntimeError(f"All LLM providers failed. Last error: {last_error}")
+
+# Modify build_poi_prompt to accept 'context'
+def build_poi_prompt(city: str, preferences: list[str], days: int, budget: float, context: str = "") -> tuple[str, dict]:
+    """
+    Add 'context' (RAG snippets) to steer the model toward local knowledge.
+    """
+    system = (
+        "You are a travel planner agent. "
+        "Use provided CONTEXT when selecting POIs. "
+        "Return ONLY JSON matching this schema: "
+        "{\"pois\": [{\"name\": string, \"category\": string}]}"
+    )
+    user = {
+        "city": city,
+        "preferences": preferences or [],
+        "days": days,
+        "budget": budget,
+        "context": context,                  # <-- RAG context appended here
+        "requirements": {"count": 8, "deduplicate": True, "high_quality": True}
+    }
+    return system, user
+
+# In GeminiProvider.generate_pois (replace the function):
+    @retry(stop=stop_after_attempts(2), wait=wait_exponential(multiplier=0.5, max=4))
+    def generate_pois(self, city: str, preferences: list[str], days: int, budget: float, context: str = "") -> dict:
+        system, user = build_poi_prompt(city, preferences, days, budget, context)
+        model = genai.GenerativeModel(model_name=self.model, system_instruction=system)
+        prompt = json.dumps(user)
+        response = model.generate_content(
+            [{"role": "user", "parts": [{"text": prompt}]}],
+            generation_config={"response_mime_type": "application/json"},
+        )
+        text = response.text or ""
+        # Track rough cost for monitoring
+        cost_tracker.add("gemini", self.model, prompt_chars=len(prompt), output_chars=len(text))
+        return _force_json(text)
+
+# In OpenAIProvider.generate_pois (replace the function):
+    @retry(stop=stop_after_attempts(2), wait=wait_exponential(multiplier=0.5, max=4))
+    def generate_pois(self, city: str, preferences: list[str], days: int, budget: float, context: str = "") -> dict:
+        system, user = build_poi_prompt(city, preferences, days, budget, context)
+        prompt = json.dumps(user)
+        resp = self.client.chat.completions.create(
+            model=self.model,
+            response_format={"type": "json_object"},
+            messages=[{"role": "system", "content": system}, {"role": "user", "content": prompt}],
+            temperature=0.2
+        )
+        text = resp.choices[0].message.content or ""
+        cost_tracker.add("openai", self.model, prompt_chars=len(prompt), output_chars=len(text))
+        return _force_json(text)
+
+# In AnthropicProvider.generate_pois (replace the function):
+    @retry(stop=stop_after_attempts(2), wait=wait_exponential(multiplier=0.5, max=4))
+    def generate_pois(self, city: str, preferences: list[str], days: int, budget: float, context: str = "") -> dict:
+        system, user = build_poi_prompt(city, preferences, days, budget, context)
+        prompt = json.dumps(user)
+        resp = self.client.messages.create(
+            model=self.model,
+            system=system,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.2,
+            max_tokens=1024
+        )
+        text = ""
+        if resp and resp.content and len(resp.content) > 0:
+            block = resp.content[0]
+            if getattr(block, "text", None):
+                text = block.text
+            elif isinstance(block, dict) and "text" in block:
+                text = block["text"]
+        cost_tracker.add("anthropic", self.model, prompt_chars=len(prompt), output_chars=len(text))
+        return _force_json(text)
+
+# Router: pass through 'context'
+    def generate_pois(self, city: str, preferences: list[str], days: int, budget: float, context: str = "") -> dict:
+        last_error: Optional[Exception] = None
+        for name, provider in self._providers():
+            try:
+                data = provider.generate_pois(city, preferences, days, budget, context)
+                if isinstance(data, dict) and "pois" in data:
+                    return data
+            except Exception as e:
+                last_error = e
+        raise RuntimeError(f"All LLM providers failed. Last error: {last_error}")
