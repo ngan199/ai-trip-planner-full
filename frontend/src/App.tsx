@@ -4,6 +4,7 @@ import PlannerForm from "./components/PlannerForm";
 import MapView from "./components/MapView";
 import DayTimeline from "./components/DayTimeline";
 import BudgetBreakdown from "./components/BudgetBreakdown";
+import Notes from "./components/Notes";
 import type { Itinerary } from "./types/app";
 
 
@@ -24,6 +25,7 @@ export default function App() {
         <MapView itinerary={itinerary} />
         <div style={{ marginTop: 16 }}>
           <DayTimeline itinerary={itinerary} />
+          <Notes notes={itinerary?.notes} uncertainties={itinerary?.uncertainties} />  {/* new */}
         </div>
       </div>
     </div>
